@@ -40,14 +40,24 @@
         .button:active {
             background-color: #2da94f;
         }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: black;
+            font-size: 20px;
+        }
     </style>
 </head>
 <body>
+    <div id="score">Очки: 0</div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <div class="controls">
         <div class="button" id="leftButton">←</div>
         <div class="button" id="shootButton">●</div>
         <div class="button" id="rightButton">→</div>
+        <div class="button" id="upButton">↑</div>
+        <div class="button" id="downButton">↓</div>
     </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -73,13 +83,26 @@
         // Пули
         const bullets = [];
 
+        // Вражеские танки
+        const enemies = [
+            { x: 100, y: 50, width: tankSize, height: tankSize, color: 'red', speed: 1 },
+            { x: 300, y: 50, width: tankSize, height: tankSize, color: 'red', speed: 1 }
+        ];
+
+        // Счётчик очков
+        let score = 0;
+
         // Обработка нажатия на кнопки
         document.getElementById('leftButton').addEventListener('touchstart', () => player.dx = -playerSpeed);
         document.getElementById('rightButton').addEventListener('touchstart', () => player.dx = playerSpeed);
+        document.getElementById('upButton').addEventListener('touchstart', () => player.dy = -playerSpeed);
+        document.getElementById('downButton').addEventListener('touchstart', () => player.dy = playerSpeed);
         document.getElementById('shootButton').addEventListener('touchstart', shoot);
 
         document.getElementById('leftButton').addEventListener('touchend', () => player.dx = 0);
         document.getElementById('rightButton').addEventListener('touchend', () => player.dx = 0);
+        document.getElementById('upButton').addEventListener('touchend', () => player.dy = 0);
+        document.getElementById('downButton').addEventListener('touchend', () => player.dy = 0);
 
         // Функция для стрельбы
         function shoot() {
@@ -112,13 +135,59 @@
             });
         }
 
+        // Отрисовка врагов
+        function drawEnemies() {
+            enemies.forEach(enemy => {
+                ctx.fillStyle = enemy.color;
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+            });
+        }
+
+        // Обновление позиции врагов
+        function updateEnemies() {
+            enemies.forEach(enemy => {
+                enemy.y += enemy.speed; // Враги движутся вниз
+                if (enemy.y > canvas.height) {
+                    enemy.y = 50; // Возвращаем врага наверх, если он покинул экран
+                }
+            });
+        }
+
+        // Проверка столкновений
+        function checkCollisions() {
+            bullets.forEach((bullet, bulletIndex) => {
+                enemies.forEach((enemy, enemyIndex) => {
+                    if (
+                        bullet.x < enemy.x + enemy.width &&
+                        bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height &&
+                        bullet.y + bullet.height > enemy.y
+                    ) {
+                        // Удаление пули и врага при столкновении
+                        bullets.splice(bulletIndex, 1);
+                        enemies.splice(enemyIndex, 1);
+                        score += 10; // Увеличиваем счёт
+                        updateScore();
+                    }
+                });
+            });
+        }
+
+        // Отображение счёта
+        function updateScore() {
+            document.getElementById('score').textContent = `Очки: ${score}`;
+        }
+
         // Обновление состояния игры
         function update() {
             player.x += player.dx;
+            player.y += player.dy;
 
             // Ограничение движения игрока в пределах экрана
             if (player.x < 0) player.x = 0;
             if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+            if (player.y < 0) player.y = 0;
+            if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
         }
 
         // Очистка экрана
@@ -130,8 +199,11 @@
         function gameLoop() {
             clearScreen();
             update();
+            updateEnemies();
+            checkCollisions();
             drawPlayer();
             drawBullets();
+            drawEnemies();
             requestAnimationFrame(gameLoop);
         }
 
