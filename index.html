@@ -12,15 +12,43 @@
             align-items: center;
             height: 100vh;
             background-color: #f4f4f9;
+            position: relative;
         }
         canvas {
             border: 2px solid #000;
             background-color: #87ceeb;
         }
+        .controls {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+        }
+        .button {
+            width: 60px;
+            height: 60px;
+            background-color: #34c759;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            line-height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            user-select: none;
+        }
+        .button:active {
+            background-color: #2da94f;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div class="controls">
+        <div class="button" id="leftButton">←</div>
+        <div class="button" id="shootButton">●</div>
+        <div class="button" id="rightButton">→</div>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -45,16 +73,13 @@
         // Пули
         const bullets = [];
 
-        // Обработка нажатия клавиш
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') player.dx = -playerSpeed;
-            if (e.key === 'ArrowRight') player.dx = playerSpeed;
-            if (e.key === ' ') shoot(); // Пробел для стрельбы
-        });
+        // Обработка нажатия на кнопки
+        document.getElementById('leftButton').addEventListener('touchstart', () => player.dx = -playerSpeed);
+        document.getElementById('rightButton').addEventListener('touchstart', () => player.dx = playerSpeed);
+        document.getElementById('shootButton').addEventListener('touchstart', shoot);
 
-        document.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
-        });
+        document.getElementById('leftButton').addEventListener('touchend', () => player.dx = 0);
+        document.getElementById('rightButton').addEventListener('touchend', () => player.dx = 0);
 
         // Функция для стрельбы
         function shoot() {
