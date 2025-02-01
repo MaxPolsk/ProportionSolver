@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Танчики</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+        canvas {
+            border: 2px solid #000;
+            background-color: #87ceeb;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Настройки игры
+        const tankSize = 40; // Размер танка
+        const bulletSize = 10; // Размер пули
+        const playerSpeed = 5; // Скорость игрока
+        const bulletSpeed = 7; // Скорость пули
+
+        // Игрок
+        const player = {
+            x: canvas.width / 2 - tankSize / 2,
+            y: canvas.height - tankSize - 10,
+            width: tankSize,
+            height: tankSize,
+            color: 'green',
+            dx: 0,
+            dy: 0
+        };
+
+        // Пули
+        const bullets = [];
+
+        // Обработка нажатия клавиш
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') player.dx = -playerSpeed;
+            if (e.key === 'ArrowRight') player.dx = playerSpeed;
+            if (e.key === ' ') shoot(); // Пробел для стрельбы
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') player.dx = 0;
+        });
+
+        // Функция для стрельбы
+        function shoot() {
+            bullets.push({
+                x: player.x + player.width / 2 - bulletSize / 2,
+                y: player.y,
+                width: bulletSize,
+                height: bulletSize,
+                speed: bulletSpeed
+            });
+        }
+
+        // Отрисовка игрока
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        // Отрисовка пуль
+        function drawBullets() {
+            ctx.fillStyle = 'black';
+            bullets.forEach((bullet, index) => {
+                bullet.y -= bullet.speed;
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+
+                // Удаление пули, если она вышла за пределы экрана
+                if (bullet.y + bullet.height < 0) {
+                    bullets.splice(index, 1);
+                }
+            });
+        }
+
+        // Обновление состояния игры
+        function update() {
+            player.x += player.dx;
+
+            // Ограничение движения игрока в пределах экрана
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+        }
+
+        // Очистка экрана
+        function clearScreen() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Основной игровой цикл
+        function gameLoop() {
+            clearScreen();
+            update();
+            drawPlayer();
+            drawBullets();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Запуск игры
+        gameLoop();
+    </script>
+</body>
+</html>
